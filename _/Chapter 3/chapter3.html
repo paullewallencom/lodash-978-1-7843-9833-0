@@ -1,0 +1,512 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Working With Functions</title>
+		<link rel="stylesheet" href="../lib/highlight/styles/github.css">
+		<link rel="stylesheet" href="../lib/lodash-essentials.css">
+		<script src="../lib/jquery.min.js"></script>
+		<script src="../lib/highlight/highlight.pack.js"></script>
+		<script src="../lib/lodash.js"></script>
+		<script src="../lib/lodash-essentials.js"></script>
+		<script src="chapter3.js"></script>
+	</head>
+	<body>
+		<h1>Lodash Essentials</h1>
+		<h2>Chapter 3 &mdash; working with functions</h2>
+		<div id="container">
+			<ul id="navigation">
+				<li><strong>Binding Function Contexts</strong></li>
+				<li><a href="#bind">binding contexts</a></li>
+				<li><a href="#bindArgs">context and arguments</a></li>
+				<li><a href="#bindAll">binding methods to contexts</a></li>
+				<li><a href="#bindAllName">binding methods by name</a></li>
+				<li><a href="#bindKey">dynamic methods</a></li>
+				<li><a href="#bindKeyArgs">dynamic method arguments</a></li>
+				<li><strong>Decorating Functions</strong></li>
+				<li><a href="#partial">function partials</a></li>
+				<li><a href="#partialArgs">calling partials with arguments</a></li>
+				<li><a href="#partialRight">reversed partials</a></li>
+				<li><a href="#partialLodash">partials for Lodash functions</a></li>
+				<li><a href="#wrap">value decoration</a></li>
+				<li><a href="#wrapFunction">wrapping functions</a></li>
+				<li><strong>Function Constraints</strong></li>
+				<li><a href="#after">counting invocations</a></li>
+				<li><a href="#afterAsync">synchronizing callbacks</a></li>
+				<li><a href="#once">call only once</a></li>
+				<li><a href="#memoize">caching values</a></li>
+				<li><a href="#memoizeResolver">resolving cache keys</a></li>
+				<li><strong>Timed Execution</strong></li>
+				<li><a href="#delay">delaying function execution</a></li>
+				<li><a href="#delayArgs">delaying with arguments</a></li>
+				<li><a href="#defer">deferring function calls</a></li>
+				<li><a href="#deferWrapper">wrapping functions with deferreds</a></li>
+				<li><a href="#throttle">throttling call frequency</a></li>
+				<li><a href="#debounce">debouncing calls</a></li>
+				<li><strong>Composing and Currying Functions</strong></li>
+				<li><a href="#compose">composing behavior</a></li>
+				<li><a href="#flow">function flow</a></li>
+				<li><a href="#curry">currying functions</a></li>
+			</ul>
+			<div id="right">
+				<h3>Code</h3>
+<pre id="bind" class="hidden"><code>
+function sayWhat() {
+    return 'Say, ' + this.what;
+}   
+
+var sayHello = _.bind(sayWhat, {
+    what: 'hello'
+});
+ 
+var sayGoodbye = _.bind(sayWhat, {
+    what: 'goodbye'
+}); 
+
+sayHello();
+sayGoodbye();
+</code></pre>
+<pre id="bindArgs" class="hidden"><code>
+function sayWhat(what) {
+    if (_.isUndefined(what)) {
+        what = this.what;
+    }   
+    return 'Say, ' + what;
+}   
+
+var sayHello = _.bind(sayWhat, {
+    what: 'hello'
+});
+
+var sayGoodbye = _.bind(sayWhat, {}, 'goodbye'),
+    saySomething = _.bind(sayWhat, {});
+
+sayHello();
+sayGoodbye();
+saySomething('what?');
+</code></pre>
+<pre id="bindAll" class="hidden"><code>
+function bindName(name) {
+    return _.bind(name, {
+        first: 'Becky',
+        last: 'Rice'
+    }); 
+}   
+
+var object = { 
+    first: 'Ralph',
+    last: 'Crawford',
+    name: function() {
+        return this.first + ' ' + this.last;
+    }   
+};
+
+var name = bindName(object.name),
+    result = {}; 
+
+result['original'] = object.name();
+result['bind'] = name();
+
+_.bindAll(object);
+
+name = bindName(object.name)
+
+result['bindAll'] = name();
+</code></pre>
+<pre id="bindAllName" class="hidden"><code>
+function getName() {
+    return this.name;
+}   
+
+var object = { 
+    name: 'My Bound Object',
+    method1: getName,
+    method2: getName,
+    method3: getName
+};
+
+_.bindAll(object, [ 'method1', 'method2' ]); 
+
+var method3 = _.bind(object.method3, {
+    name: 'New Context'
+}); 
+
+object.method1();
+object.method2();
+method3();  
+</code></pre>
+<pre id="bindKey" class="hidden"><code>
+function workLeft() {
+    return 65 - this.age + ' years';
+}   
+
+var object = { 
+    age: 38
+};  
+
+var work = _.bindKey(object, 'work');
+
+object.work = workLeft;
+
+work();
+</code></pre>
+<pre id="bindKeyArgs" class="hidden"><code>
+function workLeft(retirement, period) {
+    return retirement - this.age + ' ' + period;
+}   
+
+var collection = [ 
+    { age: 34, retirement: 60 },
+    { age: 47 },
+    { age: 28, retirement: 55 },
+    { age: 41 }
+];
+
+var functions = [], 
+    result = []; 
+
+ _.forEach(collection, function(item) {
+    functions.push(_.bindKey(item, 'work', item.retirement ?
+        item.retirement : 65));
+}); 
+
+_.forEach(collection, function(item) {
+    _.extend(item, { work: workLeft }); 
+}); 
+
+_.forEach(functions, function(item) {
+    result.push(item('years'));
+}); 
+</code></pre>
+<pre id="partial" class="hidden"><code>
+function sayWhat(what) {
+    return 'Say, ' + what;
+}   
+
+var hello = _.partial(sayWhat, 'hello'),
+    goodbye = _.partial(sayWhat, 'goodbye');
+
+hello();
+goodbye();
+</code></pre>
+<pre id="partialArgs" class="hidden"><code>
+function greet(greeting, name) {
+    return greeting + ', ' + name;
+}   
+
+var hello = _.partial(greet, 'hello'),
+    goodbye = _.partial(greet, 'goodbye');
+
+hello('Fran');
+goodbye('Jacob');  
+</code></pre>
+<pre id="partialRight" class="hidden"><code>
+function greet(name, greeting) {
+    return greeting + ', ' + name;
+}   
+
+var hello = _.partialRight(greet, 'hello'),
+    goodbye = _.partialRight(greet, 'goodbye');
+
+hello('Brent');
+goodbye('Alison');
+</code></pre>
+<pre id="partialLodash" class="hidden"><code>
+var collection = [ 
+    'Sheila',
+    'Kurt',
+    'Wade',
+    'Kyle'
+];
+
+var random = _.partial(_.random, 1, collection.length),
+    sample = _.partial(_.sample, collection);
+
+random();
+sample();
+</code></pre>
+<pre id="wrap" class="hidden"><code>
+function strong(value) {
+    return '<strong>' + value + '</strong>';
+}   
+
+function regex(exp, val) {
+    exp = _.isRegExp(exp) ?
+        exp : new RegExp(exp);
+    return _.isUndefined(val) ?
+        exp : exp.exec(val);
+}   
+
+var boldName = _.wrap('Marianne', strong),
+    getNumber = _.wrap('(\\d+)', regex);
+
+boldName();
+getNumber('abc123')[1];
+</code></pre>
+<pre id="wrapFunction" class="hidden"><code>
+var user = _.sample([
+    'Scott',
+    'Breanne'   
+]);
+
+var allowed = [ 
+    'Scott',
+    'Estelle'
+];  
+
+function permission(func) {
+    if (_.contains(allowed, user)) {
+        return func.apply(null, _.slice(arguments, 1));
+    }   
+    throw new Error('DENIED');
+}   
+
+function echo(value) {
+    return value;
+}   
+
+var welcome = _.wrap(echo, permission);
+
+welcome('Yo there!');
+</code></pre>
+<pre id="after" class="hidden"><code>
+function work(value) {
+    progress();
+}   
+
+function reportProgress() {
+    console.log(++complete + '%');
+    progress = complete < 100 ?
+        _.after(0.01 * collection.length, reportProgress) :
+        _.noop;
+}   
+
+var complete = 0,
+    collection = _.range(9999999),
+    progress = _.noop;
+
+reportProgress();
+
+_.forEach(collection, work);
+</code></pre>
+<pre id="afterAsync" class="hidden"><code>
+function process(coll, callback) {
+    var sync = _.after(coll.length, callback);
+    _.forEach(coll, function() {
+        setTimeout(sync, _.random(2000));
+    }); 
+    console.log('timeouts all set');
+}   
+
+process(_.range(5), function() {
+    console.log('callbacks completed');
+});
+</code></pre>
+<pre id="once" class="hidden"><code>
+function getLeader(coll) {
+    return _.first(_.sortBy(coll, 'score').reverse());
+}   
+
+var collection = [ 
+    { name: 'Dana', score: 84.4 },
+    { name: 'Elsa', score: 44.3 },
+    { name: 'Terrance', score: 55.9 },
+    { name: 'Derrick', score: 86.1 }
+];  
+
+var leader = _.once(getLeader);
+
+leader(collection);
+</code></pre>
+<pre id="memoize" class="hidden"><code>
+function toCelsius(degrees) {
+    return (degrees - 32) * 5 / 9;
+}   
+
+function toFahrenheit(degrees) {
+    return degrees * 9 / 5 + 32; 
+}   
+
+var celsius = _.memoize(toCelsius),
+    fahrenheit = _.memoize(toFahrenheit);
+
+toCelsius(89).toFixed(2) + ' C';
+celsius(89).toFixed(2) + ' C';
+toFahrenheit(23).toFixed(2) + ' F';
+fahrenheit(23).toFixed(2) + ' F';  
+</code></pre>
+<pre id="memoizeResolver" class="hidden"><code>
+function toCelsius(degrees) {
+    return (degrees - 32) * 5 / 9;
+}   
+
+function toFahrenheit(degrees) {
+    return degrees * 9 / 5 + 32; 
+}   
+
+function convertTemp(degrees, system) {
+    return system.toUpperCase() === 'C' ?
+        toFahrenheit(degrees).toFixed(2) + ' F' :
+        toCelsius(degrees).toFixed(2) + ' C';
+}   
+
+var convert = _.memoize(convertTemp, function(degrees, system) {
+     return degrees + system;
+}); 
+
+convert(89, 'F');
+convert(89, 'F');
+convert(23, 'C');
+convert(23, 'C');
+</code></pre>
+<pre id="delay" class="hidden"><code>
+function poll() {
+    if (++cnt < max) {
+        console.log('polling round ' + (cnt + 1));
+        timer = _.delay(poll, interval);
+    } else {
+        clearTimeout(timer);
+    }   
+}   
+
+var cnt = -1, 
+    max = 5,
+    interval = 3000,
+    timer;
+
+poll();
+</code></pre>
+<pre id="delayArgs" class="hidden"><code>
+function sayHi(name, delay) {
+    function sayHiImp(name) {
+        console.log('Hi, ' + name);
+    }   
+    if (_.isUndefined(delay)) {
+        _.delay(sayHiImp, 1, name);
+    } else {
+        _.delay(sayHiImp, delay, name);
+    }   
+}   
+
+sayHi('Jan');
+sayHi('Jim', 3000);
+</code></pre>
+<pre id="defer" class="hidden"><code>
+function expensive() {
+    _.forEach(_.range(Math.pow(2, 25)), _.noop);
+    console.log('done');
+}   
+
+_.defer(expensive);
+console.log('computing...');
+</code></pre>
+<pre id="deferWrapper" class="hidden"><code>
+function deferred(func) {
+    return _.defer.apply(_, ([ func ]).concat(_.slice(arguments, 1)));
+}   
+
+function setTitle(title) {
+    console.log('Title: "' + title + '"');
+}   
+
+function setState(app) {
+    console.log('State: "' + app.state + '"');
+}   
+
+var title = _.wrap(setTitle, deferred),
+    state = _.wrap(setState, deferred),
+    app = { state: 'stopped' };
+
+title('Home');
+state(app);
+app.state = 'started';
+</code></pre>
+<pre id="throttle" class="hidden"><code>
+var el = document.querySelector('#container'),
+    onMouseMove = _.throttle(function(e) {
+        console.log('X: ' + e.clientX + ' Y: ' + e.clientY);
+    }, 750);
+
+el.addEventListener('mousemove', onMouseMove);
+window.addEventListener('hashchange', function cleanup() {
+    el.removeEventListener('mousemove', onMouseMove);
+    window.removeEventListener('mousemove', cleanup);
+});
+</code></pre>
+<pre id="debounce" class="hidden"><code>
+function log(msg, item) {
+    console.log(msg + ' ' + item);
+}   
+
+var debounced = _.debounce(_.partial(log, 'debounced'), 1), 
+    throttled = _.throttle(_.partial(log, 'throttled'), 1), 
+    size = 1500;
+
+_.forEach(_.range(size), debounced);
+_.forEach(_.range(size), throttled);
+</code></pre>
+<pre id="compose" class="hidden"><code>
+function dough(pizza) {
+    if (_.isUndefined(pizza)) {
+        pizza = {};
+    }   
+    return _.extend({
+        dough: true
+    }, pizza);
+}   
+
+function sauce(pizza) {
+    if (!pizza.dough) {
+        throw new Error('Dough not ready');
+    }   
+    return _.extend({
+        sauce: true
+    }, pizza);
+}   
+
+function cheese(pizza) {
+    if (!pizza.sauce) {
+        throw new Error('Sauce not ready');
+    }   
+    return _.extend({
+        cheese: true
+    }, pizza);
+}   
+
+var pizza = _.compose(cheese, sauce, dough);
+
+pizza();
+</code></pre>
+<pre id="flow" class="hidden"><code>
+var pizza = _.flow(dough, sauce, cheese);
+
+return pizza();
+</code></pre>
+<pre id="curry" class="hidden"><code>
+function makePizza(dough, sauce, cheese) {
+    return {
+        dough: dough,
+        sauce: sauce,
+        cheese: cheese
+    };  
+}   
+
+function dough(pizza) {
+    return pizza(true);
+}   
+
+function sauceAndCheese(pizza) {
+    return pizza(true, true);
+}   
+
+var pizza = _.curry(makePizza);
+
+sauceAndCheese(dough(pizza));
+</code></pre>
+				<h3>Result</h3>
+				<pre id="result"><code>
+					
+				</code></pre>
+			</div>
+		</div>
+	</body>
+</html>

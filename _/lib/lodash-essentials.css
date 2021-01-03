@@ -1,0 +1,50 @@
+body {
+	font-family: PT Sans, DejaVu Sans, Arial, sans;
+	margin: 4em;
+}
+
+a {
+	text-decoration: none;
+	color: #4183c4;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+ul {
+	list-style-type: none;
+	padding-left: 0;
+}
+
+ul, h3 {
+	margin-top: 0;
+}
+
+.hidden {
+	display: none;
+}
+
+.active {
+	font-weight: bold;
+}
+
+#container {
+	display: flex;
+}
+
+#navigation {
+	margin-right: 2em;
+	max-height: 500px;
+	min-width: 300px;
+	overflow-x: scroll;
+}
+
+#navigation li strong {
+	font-size: 1.05em;
+	opacity: 0.4;
+}
+
+#right {
+	flex-grow: 2;
+}

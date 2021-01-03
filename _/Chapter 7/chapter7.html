@@ -1,0 +1,303 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Using Lo-Dash With Other Libraries</title>
+		<link rel="stylesheet" href="../lib/highlight/styles/github.css">
+		<link rel="stylesheet" href="../lib/lodash-essentials.css">
+		<script src="../lib/jquery.min.js"></script>
+		<script src="../lib/highlight/highlight.pack.js"></script>
+		<script src="../lib/lodash.js"></script>
+		<script src="../lib/lodash-essentials.js"></script>
+		<script src="chapter7.js"></script>
+		<script data-main="main" src="../lib/require.min.js"></script>
+	</head>
+	<body>
+		<h1>Lodash Essentials</h1>
+		<h2>Chapter 7 &mdash; using Lo-Dash with other libraries</h2>
+		<div id="container">
+			<ul id="navigation">
+				<li><strong>Modules</strong></li>
+				<li><a href="#amdModule">Defining AMD modules</a></li>
+				<li><a href="#requireLodash">Requiring Lo-Dash</a></li>
+				<li><a href="#amdLodash">Lo-Dash module categories</a></li>
+				<li><a href="#amdLodashFunctions">Lo-Dash function modules</a></li>
+				<li><a href="#amdLodashChain">Lo-Dash module chain</a></li>
+				<li><strong>jQuery</strong>
+				<li><a href="#jQueryMap">Mapping jQuery collections</a></li>
+				<li><a href="#jQueryBind">Binding callbacks</a></li>
+				<li><a href="#jQueryDeferred">Working with deferreds</a></li>
+				<li><strong>Backbone</strong></li>
+				<li><a href="#backboneUnderscore">Replacing Underscore</a></li>
+				<li><a href="#backboneLodash">Using Lo-Dash AMD with Backbone</a></li>
+				<li><a href="#backboneExtend">Extending collections with Lo-Dash</a></li>
+			</ul>
+			<div id="right">
+				<h3>Code</h3>
+<pre id="amdModule" class="hidden"><code>
+var collection = [
+    { name: 'Frederick', age: 37 },
+    { name: 'Tasha', age: 45 },
+    { name: 'Lisa', age: 33 },
+    { name: 'Michael', age: 41 }
+];
+
+require([ 'modules/average-age' ], function(averageAge) {
+   	averageAge(collection);
+
+});
+</code></pre>
+<pre id="requireLodash" class="hidden"><code>
+// sort-name.js
+define([ 'lodash' ], function(_) {
+    return function(coll) {
+        return _(coll)
+            .sortBy(function(item) {
+                return item.first + ' ' + item.last;
+            });
+    };
+});
+// sort-name.js
+
+var collection = [
+    { first: 'Georgia', last: 'Todd' },
+    { first: 'Andrea', last: 'Gretchen' },
+    { first: 'Ruben', last: 'Green' },
+    { first: 'Johnny', last: 'Tucker' }
+];
+
+require([ 'modules/sort-name' ], function(sortName) {
+	sortName(collection).value();
+});
+</code></pre>
+<pre id="amdLodash" class="hidden"><code>
+function Person(first, last) {
+    this.first = first;
+    this.last = last;
+}
+
+Person.prototype.name = function() {
+    return this.first + ' ' + this.last;
+}
+
+var collection = [
+    new Person('Douglas', 'Wright'),
+    new Person('Tracy', 'Wilson'),
+    new Person('Ken', 'Phelps'),
+    new Person('Meredith', 'Simmons')
+];
+
+require([ 'lib/lodash-amd/collection' ], function(_) {
+    _.invoke(collection, 'name');
+});
+</code></pre>
+<pre id="amdLodashFunctions" class="hidden"><code>
+var collection = [
+    { name: 'Susan', age: 57, enabled: false },
+    { name: 'Marcus', age: 45, enabled: true },
+    { name: 'Ray', age: 25, enabled: false },
+    { name: 'Dora', age: 19, enabled: true }
+];
+
+require([
+    'lib/lodash-amd/collections/filter',
+    'lib/lodash-amd/functions/partial'
+], function(filter, partial) {
+    function valid(age, item) {
+        return item.enabled && item.age >= age;
+    }
+
+    filter(collection, partial(valid, 25));
+});
+</code></pre>
+<pre id="amdLodashChain" class="hidden"><code>
+var collection = [
+    { name: 'Allan', age: 29, enabled: false },
+    { name: 'Edward', age: 43, enabled: false },
+    { name: 'Evelyn', age: 39, enabled: true },
+    { name: 'Denise', age: 34, enabled: true }
+];
+
+require([ 'lib/lodash-amd/main' ], function(_) {
+    _(collection)
+        .filter('enabled')
+        .sortBy('age')
+        .reverse()
+        .map('name')
+        .value();
+});
+</code></pre>
+<pre id="jQueryMap" class="hidden"><code>
+var i = 1000;
+console.time('$');
+while (i--) {
+    $('li').map(function() {
+        return $(this).html();
+    });
+}
+console.timeEnd('$');
+i = 1000;
+console.time('_');
+while (i--) {
+    _.map($('li'), function(item) {
+        return $(item).html();
+    });
+}
+console.timeEnd('_');
+</code></pre>
+<pre id="jQueryBind" class="hidden"><code>
+function boundFunction(result, item) {
+    return result + this.multiplier * item;
+}
+
+var scope = { multiplier: 10 },
+    collection = _.range(1, 1000),
+    jQueryBound = $.proxy(boundFunction, scope),
+    lodashBound = _.bind(boundFunction, scope);
+
+console.time('$');
+console.log(_.reduce(collection, jQueryBound));
+console.timeEnd('$');
+
+console.time('_');
+console.log(_.reduce(collection, lodashBound));
+console.timeEnd('_');
+</code></pre>
+<pre id="jQueryDeferred" class="hidden"><code>
+function query(coll, filter, sort) {
+    var deferred = $.Deferred(),
+        _coll = _(coll).filter(filter);
+
+    if (sort) {
+        _coll.sortBy(_.isBoolean(sort) ? undefined : sort);
+    }
+
+    if (_.size(coll) > 5000) {
+        _.defer(function() {
+            deferred.resolve(_coll.value());
+        });
+    } else {
+        deferred.resolve(_coll.value());
+    }
+
+    return deferred.promise();
+}
+
+var collection = _.map(_.range(_.random(10000)), function(item) {
+    return {
+        id: item,
+        enabled: !!_.random()
+    };
+}), resultSize;
+
+console.log('Collection size: ' + _.size(collection));
+query(collection, 'enabled', true).done(function(result) {
+    resultSize = _.size(result);
+    console.log('Result size: ' + resultSize);
+});
+
+if (!resultSize) {
+    console.log('Awaiting results...');
+}
+</code></pre>
+<pre id="backboneUnderscore" class="hidden"><code>
+// backbone-model.js
+define([
+    'underscore',
+    'lib/backbone'
+], function(_, Backbone) {
+    return Backbone.Model.extend({
+        parse: function(data) {
+            return _.extend({
+                name: data.first + ' ' + data.last
+            }, data);
+        }
+    });
+});
+// backbone-model.js
+
+require([ 'modules/backbone-model' ], function(Model) {
+    new Model({
+        first: 'Lance',
+        last: 'Newman'
+    }, { parse: true }).toJSON();
+});
+</code></pre>
+<pre id="backboneLodash" class="hidden"><code>
+// backbone-model-lodash.js
+define([
+    'lib/lodash-amd/object/assign',
+    'lib/backbone'
+], function(assign, Backbone) {
+    return Backbone.Model.extend({
+        parse: function(data) {
+            return assign({
+                name: data.first + ' ' + data.last
+            }, data);
+        }
+    });
+});
+// backbone-model-lodash.js
+
+require([ 'modules/backbone-model-lodash' ], function(Model) {
+    new Model({
+        first: 'Lance',
+        last: 'Newman'
+    }, { parse: true }).toJSON();
+});
+</code></pre>
+<pre id="backboneExtend" class="hidden"><code>
+// backbone-extensions.js
+define([
+    'lib/backbone',
+    'lib/lodash-amd/array/slice',
+    'lib/lodash-amd/array/takeRight',
+    'lib/lodash-amd/array/dropWhile'
+], function(Backbone, slice, takeRight, dropWhile) {
+    function extendCollection(func, name) {
+        Backbone.Collection.prototype[name] = function() {
+            var args = slice(arguments);
+            args.unshift(this.models);
+            return func.apply(null, args);
+        }
+    }
+
+    extendCollection(takeRight, 'takeRight');
+    extendCollection(dropWhile, 'dropWhile');
+
+    return Backbone;
+});
+// backbone-extensions.js
+
+require([
+    'lib/lodash-amd/collection',
+    'modules/backbone-extensions'
+], function(_, Backbone) {
+
+    function name(model) {
+        return model.get('name');
+    }
+
+    var collection = new Backbone.Collection([
+            { name: 'Frank' },
+            { name: 'Darryl' },
+            { name: 'Stacey' },
+            { name: 'Robin' }
+        ], { comparator: name });
+
+    _.map(collection.takeRight(2), name );
+
+    _.map(collection.dropWhile(function(model, index, coll) {
+        return index < (coll.length - 2);
+    }), name);
+
+});
+</code></pre>
+				<h3>Result</h3>
+				<pre id="result"><code>
+
+					
+				</code></pre>
+			</div>
+		</div>
+	</body>
+</html>

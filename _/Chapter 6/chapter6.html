@@ -1,0 +1,351 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Application Building Blocks</title>
+		<link rel="stylesheet" href="../lib/highlight/styles/github.css">
+		<link rel="stylesheet" href="../lib/lodash-essentials.css">
+		<script src="../lib/jquery.min.js"></script>
+		<script src="../lib/highlight/highlight.pack.js"></script>
+		<script src="../lib/lodash.js"></script>
+		<script src="../lib/lodash-essentials.js"></script>
+		<script src="chapter6.js"></script>
+	</head>
+	<body>
+		<h1>Lodash Essentials</h1>
+		<h2>Chapter 6 &mdash; application building blocks</h2>
+		<div id="container">
+			<ul id="navigation">
+				<li><strong>Specific functions</strong></li>
+				<li><a href="#specificGeneric">Specific and generic functions</a></li>
+				<li><strong>Generic function arguments</strong></li>
+				<li><a href="#genericArguments">Using generic arguments</a></li>
+				<li><strong>Using partials</strong></li>
+				<li><a href="#partials">Using partial() to create functions</a></li>
+				<li><strong>Generic callbacks</strong></li>
+				<li><a href="#genericCallbacks">Creating generic callbacks</a></li>
+				<li><strong>Generic filters</strong></li>
+				<li><a href="#genericFilters">Generic filters with chains</a></li>
+				<li><a href="#returnChain">Returning chains form functions</a></li>
+				<li><strong>Composing functions</strong></li>
+				<li><a href="#functionComposition">Function composition</a></li>
+				<li><a href="#callbackComposition">Callback composition</a></li>
+				<li><a href="#chainComposition">Chain composition</a></li>
+				<li><a href="#methodComposition">Method composition</a></li>
+				<li><strong>Creating mixins</strong></li>
+				<li><a href="#mixinAverage">average() mixin</a></li>
+				<li><a href="#mixinDistance">distance() mixin</a></li>
+			</ul>
+			<div id="right">
+				<h3>Code</h3>
+<pre id="specificGeneric" class="hidden"><code>
+var collection = [
+    { name: 'Ronnie', age: 43 },
+    { name: 'Ben', age: 19 },
+    { name: 'Sharon', age: 25 },
+    { name: 'Melissa', age: 29 }
+];
+
+function collectionNames() {
+    return _.map(collection, 'name');
+}
+
+function indirectionNames(coll, prop) {
+    return _.map(coll, prop);
+}
+
+function genericCollNames(coll) {
+    return _.map(coll, 'name');
+}
+
+function genericPropNames(prop) {
+    return _.map(collection, prop);
+}
+
+collectionNames();
+indirectionNames(collection, 'name');
+genericCollNames(collection);
+genericPropNames('name');
+</code></pre>
+<pre id="genericArguments" class="hidden"><code>
+function insert(coll, callback) {
+    var toInsert;
+
+    if (_.isFunction(callback)) {
+        toInsert = _.slice(arguments, 2);
+    } else {
+        toInsert = _.slice(arguments, 1);
+        callback = _.identity;
+    }
+
+    _.each(toInsert, function(item) {
+        coll.splice(_.sortedIndex(coll, item, callback), 0, item);
+    });
+
+    return coll;
+
+}
+
+var collection = _.range(1, 11);
+
+insert(collection, 8.4);
+insert(collection, 1.1, 6.9);
+insert(collection, 4, 100);
+</code></pre>
+<pre id="partials" class="hidden"><code>
+var flattenProp = _.compose(_.flatten, _.prop),
+	skills = _.partialRight(flattenProp, 'skills'),
+    names = _.partialRight(flattenProp, 'name');
+
+var collection = [
+    { name: 'Danielle', skills: [ 'CSS', 'HTML', 'HTTP' ] },
+    { name: 'Candice', skills: [ 'Lo-Dash', 'jQuery' ] },
+    { name: 'Larry', skills: [ 'KineticJS', 'Jasmine' ] },
+    { name: 'Norman', skills: [ 'Grunt', 'Require' ] }
+];
+
+_.contains(skills(collection), 'Lo-Dash');
+_.contains(names(collection), 'Candice');
+</code></pre>
+<pre id="genericCallbacks" class="hidden"><code>
+var YEAR_MILLISECONDS = 31560000000;
+
+function validItem(item) {
+    return item.age > 21 &&
+        _.isString(item.first) &&
+        _.isString(item.last);
+}
+
+function computed(item) {
+    return _.extend({
+        name: _.result(item, 'first', '') + ' ' +
+            _.result(item, 'last', ''),
+        yob: new Date(new Date() - (YEAR_MILLISECONDS * item.age))
+            .getFullYear()
+    }, item);
+}
+
+var invalidItem = _.negate(validItem);
+
+var collection = [
+    { first: 'Roderick', last: 'Campbell', age: 56 },
+    { first: 'Monica', last: 'Salazar', age: 38 },
+    { first: 'Ross', last: 'Andrews', age: 45 },
+    { first: 'Martha', age: 51 }
+];
+
+_.every(collection, validItem);
+_.filter(collection, validItem);
+_.find(collection, invalidItem);
+_.map(collection, computed);
+</code></pre>
+<pre id="genericFilters" class="hidden"><code>
+function byName(coll, name, take) {
+    return _(coll)
+        .filter({ name: name })
+        .take(_.isUndefined(take) ? 100 : take)
+        .value();
+}
+
+var collection = [
+    { name: 'Theodore', enabled: true },
+    { name: 'Leslie', enabled: true },
+    { name: 'Justin', enabled: false },
+    { name: 'Leslie', enabled: false }
+];
+
+byName(collection, 'Leslie');
+byName(_.filter(collection, 'enabled'), 'Leslie');
+byName(_(collection).filter('enabled'), 'Leslie');
+</code></pre>
+<pre id="returnChain" class="hidden"><code>
+function sort(coll, prop, desc) {
+    var wrapper = _(coll).sortBy(prop);
+    return desc ? wrapper.reverse() : wrapper;
+}
+
+var collection = [
+    { first: 'Bobby', last: 'Pope' },
+    { first: 'Debbie', last: 'Reid' },
+    { first: 'Julian', last: 'Garcia' },
+    { first: 'Jody', last: 'Greer' }
+];
+
+sort(collection, 'first').value(),
+sort(collection, 'first', true).value(),
+sort(collection, 'last')
+    .takeRight(2)
+    .pluck('last')
+    .value();
+</code></pre>
+<pre id="functionComposition" class="hidden"><code>
+function enabledIndex(obj) {
+    return _.transform(obj, function(result, value, key) {
+        result[key] = _.result(value, 'enabled', false);
+    });
+}
+
+var collection = [
+    { name: 'Claire', enabled: true },
+    { name: 'Patricia', enabled: false },
+    { name: 'Mario', enabled: true },
+    { name: 'Jerome', enabled: false }
+];
+
+var indexByName = _.partialRight(_.indexBy, 'name'),
+	enabled = _.partial(_.flow(indexByName, enabledIndex),
+    collection);
+
+enabled();
+collection.push({ name: 'Gloria', enabled: true });
+enabled();
+</code></pre>
+<pre id="callbackComposition" class="hidden"><code>
+var collection = [
+    { first: 'Andrea', last: 'Stewart',  age: 28 },
+    { first: 'Clarence', last: 'Johnston', age: 31 },
+    { first: 'Derek', last: 'Lynch', age: 37 },
+    { first: 'Susan', last: 'Rodgers', age: 41 }
+];
+
+var minimal = _.flow(_.identity,
+    _.partialRight(_.pick, [ 'last', 'age' ]));
+
+_.map(collection, minimal);
+</code></pre>
+<pre id="chainComposition" class="hidden"><code>
+function sorted(wrapper) {
+    return _(wrapper).sortBy();
+}
+
+function rejectOdd(wrapper) {
+    return _(wrapper).reject(function(item) {
+        return item % 2
+    });
+}
+
+var sortedEvens = _.flow(sorted, rejectOdd),
+    evensSorted = _.flow(rejectOdd, sorted,
+        _.partialRight(_.result, 'value')),
+    collection = _.shuffle(_.range(1, 11));
+
+sortedEvens(collection)
+	.reverse()
+	.value();
+evensSorted(collection);
+</code></pre>
+<pre id="methodComposition" class="hidden"><code>
+function validThru(next, value) {
+    return value && next;
+}
+
+function User(first, last, age) {
+    this.first = first;
+    this.last = last;
+    this.age = age;
+}
+
+User.prototype.valid = function() {
+    return _.chain(this.first)
+        .isString()
+        .thru(_.partial(validThru, this.last))
+        .isString()
+        .thru(_.partial(validThru, this.age))
+        .isFinite()
+        .value();
+}
+
+new User('Orlando', 'Olson', 25).valid();
+new User('Timothy', 'Davis').valid();
+new User('Colleen').valid();
+</code></pre>
+<pre id="mixinAverage" class="hidden"><code>
+_.mixin({average: function(coll, callback) {
+    return _(coll)
+        .map(callback)
+        .reduce(function(result, item) {
+            return result + item;
+        }) / _.size(coll);
+}});
+
+var collection = [
+    { name: 'Frederick', age: 41, enabled: true },
+    { name: 'Jasmine', age: 29, enabled: true },
+    { name: 'Virgil', age: 47, enabled: true },
+    { name: 'Lila', age: 22, enabled: false }
+];
+
+_.average(collection, 'age');
+_.average(collection, function(item) {
+    return _.size(item.name);
+});
+_(collection)
+    .filter('enabled')
+    .average('age');
+</code></pre>
+<pre id="mixinDistance" class="hidden"><code>
+_.mixin({distance: function(source, target) {
+    var sourceSize = _.size(source),
+        targetSize = _.size(target),
+        matrix;
+
+    if (sourceSize === 0) {
+        return targetSize;
+    }
+    if (targetSize === 0) {
+        return sourceSize;
+    }
+
+    matrix = _.map(_.range(targetSize + 1), function(item) {
+        return [ item ];
+    });
+
+     _.each(_.range(sourceSize + 1), function(item) {
+        matrix[0][item] = item;
+    });
+
+    _.each(target, function(targetItem, targetIndex) {
+        _.each(source, function(sourceItem, sourceIndex) {
+            if (targetItem === sourceItem) {
+                matrix[targetIndex + 1][sourceIndex + 1] =
+					matrix[targetIndex][sourceIndex];
+            } else {
+                matrix[targetIndex + 1][sourceIndex + 1] = Math.min(
+                    matrix[targetIndex][sourceIndex] + 1,
+                    Math.min(matrix[targetIndex + 1][sourceIndex] + 1,
+                        matrix[targetIndex][sourceIndex + 1] + 1));
+            }
+        });
+    });
+
+    return matrix[targetSize][sourceSize]
+
+}});
+
+_.mixin({closest: function(coll, value, callback) {
+    return _.sortBy(coll, _.flow(_.callback(callback), function(item) {
+        return _.distance(value, item);
+    }));
+}});
+
+var collection = [
+    'console',
+    'compete',
+    'competition',
+    'compose',
+    'composition'
+];
+
+_.distance('good', 'food');
+_.closest(collection, 'composite');
+_(collection)
+	.closest('consolate')
+	.first();
+</code></pre>
+				<h3>Result</h3>
+				<pre id="result"><code>
+					
+				</code></pre>
+			</div>
+		</div>
+	</body>
+</html>

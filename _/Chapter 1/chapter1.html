@@ -1,0 +1,438 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Working With Arrays and Collections</title>
+		<link rel="stylesheet" href="../lib/highlight/styles/github.css">
+		<link rel="stylesheet" href="../lib/lodash-essentials.css">
+		<script src="../lib/jquery.min.js"></script>
+		<script src="../lib/highlight/highlight.pack.js"></script>
+		<script src="../lib/lodash.js"></script>
+		<script src="../lib/lodash-essentials.js"></script>
+		<script src="chapter1.js"></script>
+	</head>
+	<body>
+		<h1>Lodash Essentials</h1>
+		<h2>Chapter 1 &mdash; working with arrays and collections</h2>
+		<div id="container">
+			<ul id="navigation">
+				<li><strong>Iterating Through Collections</strong></li>
+				<li><a href="#basicForEach">Basic forEach()</a></li>
+				<li><a href="#forEachIndex">forEach() index argument</a></li>
+				<li><a href="#forEachRight">forEachRight()</a></li>
+				<li><strong>Sorting Data</strong></li>
+				<li><a href="#sortByPropertyName">sortBy() property name</a></li>
+				<li><a href="#sortByShorthand">sortBy() shorthand</a></li>
+				<li><a href="#sortByMultipleProperties">sortBy() multiple properties</a></li>
+				<li><a href="#sortedIndex">sortedIndex()</a></li>
+				<li><strong>Searching For Data</strong></li>
+				<li><a href="#where">Filtering with where()</a></li>
+				<li><a href="#filterPluck">filter() by truth values</a></li>
+				<li><a href="#filterCallbackFunction">filter() callback function</a>
+				<li><a href="#rejectWhere">reject() where criteria</a></li>
+				<li><a href="#find">find() the first item</a></li>
+				<li><a href="#findLast">find the last item</a></li>
+				<li><strong>Slicing Collections</strong></li>
+				<li><a href="#takeStringsAndArrays">take() the first portion of a collection</a></li>
+				<li><a href="#takeRight">last portion of collections</a></li>
+				<li><a href="#chunk">splitting collections into chunks</a></li>
+				<li><a href="#proportionalChunks">proportional collection chunking</a></li>
+				<li><a href="#uniq">uniq() arrays</a></li>
+				<li><a href="#uniqCallback">uniq() callback functions</a></li>
+				<li><strong>Transforming Collections</strong></li>
+				<li><a href="#groupBy">grouping collection items</a></li>
+				<li><a href="#groupByCallback">grouping using callbacks</a></li>
+				<li><a href="#minMax">finding minimum and maximum values</a></li>
+				<li><a href="#size">finding the collection size</a></li>
+				<li><a href="#flatten">flattening collections</a></li>
+				<li><a href="#compact">compacting collections</a></li>
+				<li><a href="#pluckCompact">plucking then compacting</a></li>
+				<li><a href="#every">validating every item</a></li>
+				<li><a href="#some">validating some items</a></li>
+				<li><a href="#union">joining collections with unions</a></li>
+				<li><a href="#intersection">finding intersections</a></li>
+				<li><a href="#xor">differences in collections</a></li>
+			</ul>
+			<div id="right">
+				<h3>Code</h3>
+<pre id="basicForEach" class="hidden">
+<code>var collection = [
+	'Lois',
+	'Kathryn',
+	'Craig',
+	'Ryan'
+];
+
+_.forEach(collection, function(name) {
+    console.log(name);
+});</code></pre>
+<pre id="forEachIndex" class="hidden">
+<code>var collection = [
+    'Timothy',
+	'Kelly',
+	'Julia',
+	'Leon'
+];
+
+_.forEach(collection, function(name, index) {
+    if (name === 'Kelly') {
+        console.log('Kelly Index: ' + index);
+        return false;
+    }
+});</code></pre>
+<pre id="forEachRight" class="hidden">
+<code>var collection = [
+    'Carl',
+	'Lisa',
+	'Raymond',
+	'Rita'
+];
+
+var result = [];
+
+_.forEachRight(collection, function(name) {
+    result.push(name);
+});</code></pre>
+<pre id="sortByPropertyName" class="hidden">
+<code>var collection = [
+    { name: 'Moe' },
+    { name: 'Seymour' },
+    { name: 'Harold' }, 
+    { name: 'Willie' }
+];
+
+_.sortBy(collection, function(item) {
+    return item.name;
+});</code></pre>
+<pre id="sortByShorthand" class="hidden">
+<code>var collection = [
+    { name: 'Moe' },
+    { name: 'Seymour' },
+    { name: 'Harold' }, 
+    { name: 'Willie' }
+];
+
+_.sortBy(collection, 'name');</code></pre>
+<pre id="sortByMultipleProperties" class="hidden">
+<code>var collection = [
+	{ name: 'Clancy', age: 43 },
+	{ name: 'Edna', age: 32 },
+	{ name: 'Lisa', age: 10 },
+	{ name: 'Philip', age: 10 }
+];
+
+_.sortBy(collection, [ 'age', 'name' ]);</code></pre>
+<pre id="sortedIndex" class="hidden">
+<code>var collection = [
+	'Carl',
+	'Gary',
+	'Luigi',
+	'Otto'
+];
+
+var name = 'Luke';
+
+collection.splice(_.sortedIndex(collection, name), 0, name);</code></pre>
+<pre id="where" class="hidden">
+<code>var collection = [ 
+    { name: 'Moe', age: 47, gender: 'm' },
+    { name: 'Sarah', age: 32, gender: 'f' },
+    { name: 'Melissa', age: 32, gender: 'f' },
+    { name: 'Dave', age: 32, gender: 'm' }
+];
+
+_.where(collection, { age: 32, gender: 'f' });</code></pre>
+<pre id="filterPluck" class="hidden">
+<code>var collection = [ 
+    { name: 'Sean', enabled: false },
+    { name: 'Joel', enabled: true },
+    { name: 'Sue', enabled: false },
+    { name: 'Jackie', enabled: true }
+];
+
+_.filter(collection, 'enabled');</code></pre>
+<pre id="filterCallbackFunction" class="hidden">
+<code>var collection = [ 
+	{ type: 'shirt', size: 'L' },
+	{ type: 'pants', size: 'S' },
+	{ type: 'shirt', size: 'XL' },
+	{ type: 'pants', size: 'M' }  
+];
+
+_.filter(collection, function(item) {
+	return item.size === 'L' || item.size === 'M';
+});</code></pre>
+<pre id="rejectWhere" class="hidden">
+<code>var collection = [
+	{ name: 'Ryan', enabled: true },
+	{ name: 'Megan', enabled: false },
+	{ name: 'Trevor', enabled: false },
+	{ name: 'Patricia', enabled: true }
+];
+
+_.reject(collection, { enabled: false });</code></pre>
+<pre id="find" class="hidden">
+<code>var collection = [ 
+    { name: 'Derek', age: 37 },
+    { name: 'Caroline', age: 35 }, 
+    { name: 'Malcolm', age: 37 },
+    { name: 'Hazel', age: 62 } 
+];
+
+_.find(collection, { age:37 });</code></pre>
+<pre id="findLast" class="hidden">
+<code>var collection = [ 
+    { name: 'Derek', age: 37 },
+    { name: 'Caroline', age: 35 }, 
+    { name: 'Malcolm', age: 37 },
+    { name: 'Hazel', age: 62 } 
+];
+
+_.findLast(collection, { age:37 });</code></pre>
+<pre id="takeStringsAndArrays" class="hidden">
+<code>var array = [ 
+	'Steve',
+	'Michelle',
+	'Rebecca',
+	'Alan'
+];
+
+_.take(array, 2);
+_.take('lodash', 2).join('');</code></pre>
+<pre id="takeRight" class="hidden">
+<code>var array = [ 
+    'Steve',
+    'Michelle',
+    'Rebecca',
+    'Alan'
+]; 
+
+_.takeRight(array, 2); 
+_.takeRight('lodash', string, 4).join('');</code></pre>
+<pre id="chunk" class="hidden">
+<code>function process(chunks, index) {
+	var chunk = chunks[index];
+	if (_.isUndefined(chunk)) {
+		return;
+	};  
+	console.log('doing expensive work ' + _.last(chunk));
+	_.defer(_.partial(process, chunks, ++index));
+}
+   
+var collection = _.range(10000),
+    chunks = _.chunk(collection, 50);
+
+process(chunks, 0);</code></pre>
+<pre id="proportionalChunks" class="hidden">
+<code>var collection = _.range(10),
+	size = Math.ceil(0.25 * collection.length);
+return _.chunk(collection, size);</code></pre>
+<pre id="uniq" class="hidden">
+<code>var collection = [ 
+    'Walter',
+    'Brenda',
+    'Arthur',
+	'Walter'
+];  
+
+_.uniq(collection);</code></pre>
+<pre id="uniqCallback" class="hidden">
+<code>var collection = [ 
+    { first: 'Julie', last: 'Sanders' },
+    { first: 'Craig', last: 'Scott' },
+    { first: 'Catherine', last: 'Stewart' },
+    { first: 'Julie', last: 'Sanders' },
+    { first: 'Craig', last: 'Scott' },
+    { first: 'Janet', last: 'Jenkins' }
+];  
+
+_.uniq(collection, function(item) {
+	return item.first + item.last;
+});</code></pre>
+<pre id="groupBy" class="hidden">
+<code>var collection = [ 
+    { name: 'Lori', size: 'S' },
+    { name: 'Johnny', size: 'M' },
+    { name: 'Theresa', size: 'S' },
+    { name: 'Christine', size: 'S' }
+];  
+
+_.groupBy(collection, 'size');</code></pre>
+<pre id="groupByCallback" class="hidden">
+<code>var collection = [
+	{ name: 'Andrea', age: 20 },    
+	{ name: 'Larry', age: 50 },  
+	{ name: 'Beverly', age: 67 },
+	{ name: 'Diana', age: 39]   
+];
+
+_.groupBy(collection, function(item) {
+	return item.age > 65 ? 'retired' : 'working';
+});</code></pre>
+<pre id="minMax" class="hidden">
+<code>var collection = [ 
+	{ name: 'Douglas', age: 52, experience: 5 },
+	{ name: 'Karen', age: 36, experience: 22 },
+	{ name: 'Mark', age: 28, experience: 6 },
+	{ name: 'Richard', age: 30, experience: 16 }
+];  
+
+_.min(collection, 'age'),
+_.max(collection, function(item) {
+	return item.age + item.experience;
+});</code></pre>
+<pre id="size" class="hidden">
+<code>var collection = [ 
+        { name: 'Gloria' },
+        { name: 'Janice' },
+        { name: 'Kathryn' },
+        { name: 'Roger' }
+    ],  
+    first = _.first(collection);
+
+_.size(collection);
+_.size(first);
+_.size(first.name);</code></pre>
+<pre id="flatten" class="hidden">
+<code>var collection = [
+        { employer: 'Lodash', employees: [
+            { name: 'Barbara' },
+            { name: 'Patrick' },
+            { name: 'Eugene' }
+        ]},
+        { employer: 'Backbone', employees: [
+            { name: 'Patricia' },
+            { name: 'Lillian' },
+            { name: 'Jeremy' }
+        ]},
+        { employer: 'Underscore', employees: [
+            { name: 'Timothy' },
+            { name: 'Bruce' },
+            { name: 'Fred' }
+        ]}
+    ],
+    employees = _.flatten(_.pluck(collection, 'employees'));
+
+_.filter(employees, function(employee) {
+    return (/^[bp]/i).test(employee.name);
+});</code></pre>
+<pre id="compact" class="hidden">
+<code>var collection = [ 
+        { name: 'Sandra' },
+        0,  
+        { name: 'Brandon' },
+        null,
+        { name: 'Denise' },
+        undefined,
+        { name: 'Jack' }
+    ],  
+    letters = [ 's', 'd' ],
+    compact = _.compact(collection),
+    result = []; 
+
+_.each(letters, function(letter) {
+    result = result.concat(
+        _.filter(compact, function(item) {
+            return _.startsWith(item.name.toLowerCase(), letter);
+        }) 
+    );  
+});</code></pre>
+<pre id="pluckCompact" class="hidden">
+<code>var collection = [ 
+        { name: 'Sandra' },
+        {}, 
+        { name: 'Brandon' },
+        true,
+        { name: 'Denise' },
+        1,  
+        { name: 'Jack' }
+     ],  
+     letters = [ 's', 'd' ],
+     names = _.compact(_.pluck(collection, 'name')),
+     result = [];
+
+_.each(letters, function(letter) {
+	result = result.concat(
+        _.filter(names, function(name) {
+            return _.startsWith(name.toLowerCase(), letter);
+        })  
+	);
+});</code></pre>
+<pre id="every" class="hidden">
+<code>var collection = [ 
+    { name: 'Jonathan' },
+    { first: 'Janet' },
+    { name: 'Kevin' },
+    { name: 'Ruby' }
+];  
+
+if (!_.every(collection, 'name')) {
+    return 'Missing name property';
+}</code></pre>
+<pre id="some" class="hidden">
+<code>var collection = [ 
+    { name: 'Sean' },
+    { name: 'Aaron' },
+    { name: 'Jason' },
+    { name: 'Lisa' }
+];  
+
+if (_.some(collection, 'name')) {
+    // Perform expensive processing...
+}</code></pre>
+<pre id="union" class="hidden">
+<code>var css = [ 
+        'Philip',
+        'Donald',
+        'Mark'
+    ],  
+    sass = [ 
+        'Gary',
+        'Michelle',
+        'Philip'
+    ],  
+    less = [ 
+        'Wayne',
+        'Ruth',
+        'Michelle'
+    ];  
+
+_.union(css, sass, less);</code></pre>
+<pre id="intersection" class="hidden">
+<code>var css = [ 
+        'Rachel',
+        'Denise',
+        'Ernest'
+    ],  
+    sass = [ 
+        'Lisa',
+        'Ernest',
+        'Rachel'
+    ],  
+    less = [ 
+        'Ernest',
+        'Rachel',
+        'William'
+    ];  
+
+_.intersection(css, sass, less);</code></pre>
+<pre id="xor" class="hidden">
+<code>var sass = [ 
+        'Lisa',
+        'Ernest',
+        'Rachel'
+    ],  
+    less = [ 
+        'Ernest',
+        'Rachel',
+        'William'
+    ];
+
+return _.xor(sass, less);</code></pre>
+				<h3>Result</h3>
+				<pre id="result"><code>
+					
+				</code></pre>
+			</div>
+		</div>
+	</body>
+</html>

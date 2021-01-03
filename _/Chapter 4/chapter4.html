@@ -1,0 +1,612 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Transformations Using Map/Reduce</title>
+		<link rel="stylesheet" href="../lib/highlight/styles/github.css">
+		<link rel="stylesheet" href="../lib/lodash-essentials.css">
+		<script src="../lib/jquery.min.js"></script>
+		<script src="../lib/highlight/highlight.pack.js"></script>
+		<script src="../lib/lodash.js"></script>
+		<script src="../lib/lodash-essentials.js"></script>
+		<script src="chapter4.js"></script>
+	</head>
+	<body>
+		<h1>Lodash Essentials</h1>
+		<h2>Chapter 4 &mdash; transformations using map/reduce</h2>
+		<div id="container">
+			<ul id="navigation">
+				<li><strong>Plucking Values</strong></li>
+				<li><a href="#pluck">plucking values</a></li>
+				<li><a href="#map">plucking with map</a></li>
+				<li><strong>Mapping Collections</strong></li>
+				<li><a href="#include">including properties</a></li>
+				<li><a href="#exclude">excluding properties</a></li>
+				<li><a href="#excludeCallback">excluding using callbacks</a></li>
+				<li><strong>Performing Calculations</strong></li>
+				<li><a href="#creatingProperties">creating properties</a></li>
+				<li><a href="#changingProperties">changing properties</a></li>
+				<li><a href="#computingSizes">computing sizes</a></li>
+				<li><strong>Calling Functions</strong></li>
+				<li><a href="#mapSize">mapping item size</a></li>
+				<li><a href="#mapMinMax">mapping minimum and maximum</a></li>
+				<li><a href="#mapSort">mapping sorted items</a></li>
+				<li><strong>Filtering and Mapping</strong></li>
+				<li><a href="#filterThenMap">filter then map</a></li>
+				<li><a href="#mapAndFilter">map and filter</a></li>
+				<li><strong>Working With Keys</strong></li>
+				<li><a href="#sortKeys">sorting values by key</a></li>
+				<li><a href="#mappingKeys">mapping keys</a></li>
+				<li><strong>Calling Methods</strong></li>
+				<li><a href="#callingMethods">calling methods</a></li>
+				<li><a href="#functions">finding methods to call</a></li>
+				<li><strong>Mapping Values and Pairs</strong></li>
+				<li><a href="#values">mapping property values</a></li>
+				<li><a href="#pairs">mapping key value pairs</a></li>
+				<li><strong>Summing Values</strong></li>
+				<li><a href="#sum">summing collection values</a></li>
+				<li><a href="#sumAccumulator">using accumulator objects</a></li>
+				<li><a href="#noAccumulator">the default accumulator</a></li>
+				<li><strong>Filtering and Reducing</strong></li>
+				<li><a href="#filterThenReduce">filtering beforing reducing</a></li>
+				<li><a href="#filterAndReduce">filtering and reducing</a></li>
+				<li><strong>Min, Max, and Average</strong></li>
+				<li><a href="#minMax">reducing minumum and maximums</a></li>
+				<li><a href="#average">computing averages</a></li>
+				<li><strong>Reducing Keys</strong></li>
+				<li><a href="#reduceKeys">reducing keys</a></li>
+				<li><strong>Object Accumulators</strong></li>
+				<li><a href="#transform">transforming objects</a></li>
+				<li><a href="#transformConstructor">transforming constructors</a></li>
+				<li><a href="#groupingAndIndexing">grouping and indexing</a></li>
+				<li><strong>Binding Contexts</strong></li>
+				<li><a href="#bindMap">binding the map context</a></li>
+				<li><a href="#bindReduce">binding the reduce context</a></li>
+				<li><strong>Generic Callback Functions</strong></li>
+				<li><a href="#genericMap">generic mapping callbacks</a></li>
+				<li><a href="#genericReduce">generic reduce callbacks</a></li>
+				<li><strong>Map/Reduce Chains</strong></li>
+				<li><a href="#mapReduceChain">map/reduce chains</a></li>
+			</ul>
+			<div id="right">
+				<h3>Code</h3>
+<pre id="pluck" class="hidden"><code>
+var collection = [ 
+    { name: 'Virginia', age: 45 },
+    { name: 'Debra', age: 34 },
+    { name: 'Jerry', age: 55 },
+    { name: 'Earl', age: 29 }
+];  
+
+_.pluck(collection, 'age');
+</code></pre>
+<pre id="map" class="hidden"><code>
+var collection = [ 
+    { name: 'Michele', age: 58 },
+    { name: 'Lynda', age: 23 },
+    { name: 'William', age: 35 },
+    { name: 'Thomas', age: 41 }
+];  
+
+_.map(collection, 'name');
+</code></pre>
+<pre id="include" class="hidden"><code>
+var collection = [ 
+    { first: 'Ryan', last: 'Coleman', age: 23 },
+    { first: 'Ann', last: 'Sutton', age: 31 },
+    { first: 'Van', last: 'Holloway', age: 44 },
+    { first: 'Francis', last: 'Higgins', age: 38 }
+];  
+
+_.map(collection, function(item) {
+    return _.pick(item, [ 'first', 'last' ]); 
+});
+</code></pre>
+<pre id="exclude" class="hidden"><code>
+var collection = [ 
+    { first: 'Clinton', last: 'Park', age: 19 },
+    { first: 'Dana', last: 'Hines', age: 36 },
+    { first: 'Pete', last: 'Ross', age: 31 },
+    { first: 'Annie', last: 'Cross', age: 48 }
+];  
+
+_.map(collection, function(item) {
+    return _.omit(item, 'first');
+});
+</code></pre>
+<pre id="excludeCallback" class="hidden"><code>
+function invalidAge(value, key) {
+    return key === 'age' && value < 40; 
+}   
+
+var collection = [ 
+    { first: 'Kim', last: 'Lawson', age: 40 },
+    { first: 'Marcia', last: 'Butler', age: 31 },
+    { first: 'Shawna', last: 'Hamilton', age: 39 },
+    { first: 'Leon', last: 'Johnston', age: 67 }
+];
+ 
+_.map(collection, function(item) {
+    return _.omit(item, invalidAge);
+});
+</code></pre>
+<pre id="creatingProperties" class="hidden"><code>
+var collection = [ 
+    { name: 'Valerie', jqueryYears: 4, cssYears: 3 },
+    { name: 'Alonzo', jqueryYears: 1, cssYears: 5 },
+    { name: 'Claire', jqueryYears: 3, cssYears: 1 },
+    { name: 'Duane', jqueryYears: 2, cssYears: 0 } 
+];  
+
+_.map(collection, function(item) {
+    return _.extend({
+        experience: item.jqueryYears + item.cssYears,
+        specialty: item.jqueryYears >= item.cssYears ?
+            'jQuery' : 'CSS'
+    }, item);
+});
+</code></pre>
+<pre id="changingProperties" class="hidden"><code>
+var app = {}, 
+    collection = [ 
+        { name: 'Cameron', supervisor: false },
+        { name: 'Lindsey', supervisor: true },
+        { name: 'Kenneth', supervisor: false },
+        { name: 'Caroline', supervisor: true }
+    ];  
+
+app.supervisor = _.find(collection, { supervisor: true }); 
+    
+_.map(collection, function(item) {
+    return _.extend(item, { supervisor: false }); 
+}); 
+    
+console.log(app.supervisor);
+</code></pre>
+<pre id="computingSizes" class="hidden"><code>
+function bytes(b) {
+    var units = [ 'B', 'K', 'M', 'G', 'T', 'P' ],
+        target = 0;
+    while (b >= 1024) { 
+        b = b / 1024;
+        target++;
+    }   
+    return (b % 1 === 0 ? b : b.toFixed(1)) +
+        units[target] + (target === 0 ? '' : 'B');
+}   
+
+var collection = [ 
+    1024,
+    1048576,
+    345198,
+    120120120
+];  
+
+_.map(collection, bytes);
+</code></pre>
+<pre id="mapSize" class="hidden"><code>
+var collection = [ 
+    [ 1, 2 ],
+    [ 1, 2, 3 ],
+    { first: 1, second: 2 },
+    { first: 1, second: 2, third: 3 } 
+];
+ 
+_.map(collection, _.size);
+</code></pre>
+<pre id="mapMinMax" class="hidden"><code>
+var source = _.range(1000),
+    collection = [ 
+        _.sample(source, 50),
+        _.sample(source, 100),
+        _.sample(source, 150)
+    ];  
+
+_.map(collection, _.min);
+_.map(collection, _.max);
+</code></pre>
+<pre id="mapSort" class="hidden"><code>
+var collection = [ 
+    [ 'Evan', 'Veronica', 'Dana' ],
+    [ 'Lila', 'Ronald', 'Dwayne' ],
+    [ 'Ivan', 'Alfred', 'Doug' ],
+    [ 'Penny', 'Lynne', 'Andy' ]
+];  
+
+_.map(collection, _.compose(_.first, function(item) {
+    return _.sortBy(item);
+}));
+</code></pre>
+<pre id="filterThenMap" class="hidden"><code>
+var collection = [ 
+    { name: 'Karl', enabled: true },
+    { name: 'Sophie', enabled: true },
+    { name: 'Jerald', enabled: false },
+    { name: 'Angie', enabled: false }
+];  
+
+_.compose(
+    _.partialRight(_.map, 'name'),
+    _.partialRight(_.filter, 'enabled')
+)(collection);
+</code></pre>
+<pre id="sortKeys" class="hidden"><code>
+var object = { 
+    first: 'Ronald',
+    last: 'Walters',
+    employer: 'Packt'
+};  
+
+_.map(_.sortBy(_.keys(object)), function(item) {
+    return object[item];
+});
+</code></pre>
+<pre id="mappingKeys" class="hidden"><code>
+var users = {}, 
+    preferences = {}; 
+
+_.each(_.range(100), function() {
+    var id = _.uniqueId('user-');
+    users[id] = { type: 'user' };
+    preferences[id] = { emailme: !!(_.random()) };
+}); 
+
+_.map(users, function(value, key) {
+    return _.extend({ id: key }, preferences[key]);
+});
+</code></pre>
+<pre id="callingMethods" class="hidden"><code>
+var object = { 
+    first: 'Roxanne',
+    last: 'Elliot',
+    name: function() {
+        return this.first + ' ' + this.last;
+    },  
+    age: 38, 
+    retirement: 65, 
+    working: function() {
+        return this.retirement - this.age;
+    }   
+};  
+
+_.map(object, function(value, key) {
+    var item = {}; 
+    item[key] = _.isFunction(value) ? object[key]() : value
+    return item;
+});
+
+_.map(object, function(value, key) {
+    var item = {}; 
+    item[key] = _.result(object, key);
+    return item;
+}); 
+</code></pre>
+<pre id="functions" class="hidden"><code>
+var object = { 
+    firstName: 'Fredrick',
+    lastName: 'Townsend',
+    first: function() {
+        return this.firstName;
+    },  
+    last: function() {
+        return this.lastName;
+    }   
+};  
+
+var methods = _.map(_.functions(object), function(item) {
+    return [ _.bindKey(object, item) ];
+}); 
+
+_.invoke(methods, 0);
+</code></pre>
+<pre id="values" class="hidden"><code>
+var object = { 
+    first: 'Lindsay',
+    last: 'Castillo',
+    age: 51
+};  
+
+_.map(_.filter(_.values(object), _.isString), function(item) {
+    return '<strong>' + item + '</strong>';
+});
+</code></pre>
+<pre id="pairs" class="hidden"><code>
+function capitalize(s) {
+    return s.charAt(0).toUpperCase() + s.slice(1);
+}   
+
+function format(label, value) {
+    return '<label>' + capitalize(label) + ':</label>' +
+        '<strong>' + value + '</strong>';
+}   
+
+var object = { 
+    first: 'Julian',
+    last: 'Ramos',
+    age: 43
+};  
+
+_.map(_.pairs(object), function(pair) {
+    return format.apply(undefined, pair);
+});
+</code></pre>
+<pre id="sum" class="hidden"><code>
+var collection = [ 
+    { ram: 1024, storage: 2048 },
+    { ram: 2048, storage: 4096 },
+    { ram: 1024, storage: 2048 },
+    { ram: 2048, storage: 4096 }
+];  
+
+_.reduce(collection, function(result, item) {
+    return result + item.ram;
+}, 0); 
+
+_.reduce(collection, function(result, item) {
+    return result + item.storage;
+}, 0);
+</code></pre>
+<pre id="sumAccumulator" class="hidden"><code>
+var collection = [ 
+    { hits: 2, misses: 4 },
+    { hits: 5, misses: 1 },
+    { hits: 3, misses: 8 },
+    { hits: 7, misses: 3 } 
+];  
+
+_.reduce(collection, function(result, item) {
+    return {
+        hits: result.hits + item.hits,
+        misses: result.misses + item.misses
+    };
+}, { hits: 0, misses: 0 });
+</code></pre>
+<pre id="noAccumulator" class="hidden"><code>
+function add(a, b) {
+    return a + b;
+}   
+
+var collection = [ 
+    { wins: 34, loses: 21 },
+    { wins: 58, loses: 12 },
+    { wins: 34, loses: 23 },
+    { wins: 40, loses: 15 }
+];  
+
+_.reduce(_.range(1, 6), add);
+_.reduce(_.pluck(collection, 'wins'), add);
+_.reduce(_.pluck(collection, 'loses'), add);
+</code></pre>
+<pre id="filterThenReduce" class="hidden"><code>
+var collection = [ 
+    { name: 'Gina', age: 34, enabled: true },
+    { name: 'Trevor', age: 45, enabled: false },
+    { name: 'Judy', age: 71, enabled: true },
+    { name: 'Preston', age: 19, enabled: false }
+];  
+
+_.reduce(_.filter(collection, 'enabled'), function(result, item) {
+    result.names.push(item.name);
+    result.years += item.age;
+    return result;
+}, { names: [], years: 0 });
+</code></pre>
+<pre id="filterAndReduce" class="hidden"><code>
+var collection = [ 
+    { name: 'Melissa', age: 28, enabled: true },
+    { name: 'Kristy', age: 22, enabled: true },
+    { name: 'Kerry', age: 31, enabled: false },
+    { name: 'Damon', age: 36, enabled: false }
+];  
+
+_.reduce(collection, function(result, item) {
+    if (item.enabled) {
+        result.names.push(item.name);
+        result.years += item.age;
+    }   
+    return result;
+}, { names: [], years: 0 });
+</code></pre>
+<pre id="minMax" class="hidden"><code>
+function score(item) {
+    return _.reduce(item.scores, function(result, score) {
+        return result + score;
+    }); 
+}   
+
+var collection = [ 
+    { name: 'Madeline', scores: [ 88, 45, 83 ] },
+    { name: 'Susan', scores: [ 79, 82, 78 ] },
+    { name: 'Hugo', scores: [ 90, 84, 85 ] },
+    { name: 'Thomas', scores: [ 74, 69, 78 ] } 
+];  
+
+_.min(collection, score);
+_.max(collection, score);
+</code></pre>
+<pre id="average" class="hidden"><code>
+function average(items) {
+    return _.reduce(items, function(result, item) {
+        return result + item;
+    }) / items.length;
+}   
+
+var collection = [ 
+    { name: 'Anthony', scores: [ 89, 59, 78 ] },
+    { name: 'Wendy', scores: [ 84, 80, 81 ] },
+    { name: 'Marie', scores: [ 58, 67, 63 ] },
+    { name: 'Joshua', scores: [ 76, 68, 74 ] } 
+];  
+
+_.reduce(collection, function(result, item, index, coll) {
+    var ave = average(item.scores);
+    result.push(ave);
+    if (index === (coll.length - 1)) {
+        return average(result);
+    }   
+    return result;
+}, []).toFixed(2);
+</code></pre>
+<pre id="reduceKeys" class="hidden"><code>
+var object = { 
+	    first: 'Kerry',
+        last: 'Singleton',
+        age: 41
+    },  
+    allowed = [ 'first', 'last' ];
+
+_.reduce(object, function(result, value, key) {
+    if (_.contains(allowed, key)) {
+        result[key] = value;
+    }   
+    return result;
+}, {});
+
+_.pick(object, allowed);
+</code></pre>
+<pre id="transform" class="hidden"><code>
+var object = { 
+    first: '&lt;strong&gt;Nicole&lt;/strong&gt;',
+    last: '&lt;strong&gt;Russel&lt;/strong&gt;',
+    age: 26
+};  
+
+_.transform(object, function(result, value, key) {
+    if (_.isString(value)) {
+        result[key] = _.unescape(value);
+    }   
+});
+</code></pre>
+<pre id="transformConstructor" class="hidden"><code>
+function Person(first, last) {
+    this.first = first;
+    this.last = last;
+}   
+
+Person.prototype.name = function name() {
+    return this.first + ' ' + this.last;
+};  
+
+var object = new Person('Alex', 'Rivera');
+
+_.transform(object, function(result, value, key) {
+    if (_.isString(value)) {
+        result[key] = value.toUpperCase();
+    }   
+}).name();
+</code></pre>
+<pre id="groupingAndIndexing" class="hidden"><code>
+var collection = [ 
+    { id: _.uniqueId('id-'), position: 'absolute', top: 12 },
+    { id: _.uniqueId('id-'), position: 'relative', top: 20 },
+    { id: _.uniqueId('id-'), position: 'absolute', top: 12 },
+    { id: _.uniqueId('id-'), position: 'relative', top: 20 }
+];  
+
+_.groupBy(collection, 'position');
+_.indexBy(collection, 'id');
+</code></pre>
+<pre id="bindMap" class="hidden"><code>
+var app = { 
+    states: [
+        'running',
+        'off',
+        'paused'
+    ],  
+    machines: [
+        { id: _.uniqueId(), state: 1 },
+        { id: _.uniqueId(), state: 0 },
+        { id: _.uniqueId(), state: 0 },
+        { id: _.uniqueId(), state: 2 } 
+    ]   
+};  
+
+var mapStates = _.partialRight(_.map, function(item) {
+    return _.extend({
+        state: this.states[item.state]
+    }, _.pick(item, 'id'));
+}, app);
+
+mapStates(app.machines);
+</code></pre>
+<pre id="bindReduce" class="hidden"><code>
+var collection = [ 12, 34, 53, 43 ],
+    settings = { tax: 1.15 },
+    applyTax = _.partialRight(_.reduce, function(result, item) {
+        return result + item * this.tax;
+    }, 0, settings);
+applyTax(collection).toFixed(2);
+</code></pre>
+<pre id="genericMap" class="hidden"><code>
+function add(item) {
+    var result = _.clone(item);
+    result[this.prop] += this.value;
+    return result;
+}   
+
+function upper(item) {
+    var result = _.clone(item);
+    result[this.prop] = result[this.prop].toUpperCase();
+    return result;
+}   
+
+var collection = [ 
+    { name: 'Gerard', balance: 100 },
+    { name: 'Jean', balance: 150 },
+    { name: 'Suzanne', balance: 200 },
+    { name: 'Darrell', balance: 250 }
+];  
+
+var mapAdd = _.partial(_.map, collection, add),
+    mapUpper = _.partial(_.map, collection, upper);
+
+mapAdd({ prop: 'balance', value: 50 });
+mapAdd({ prop: 'balance', value: 100 }); 
+mapUpper({ prop: 'name'});
+</code></pre>
+<pre id="genericReduce" class="hidden"><code>
+function sum(a, b) {
+    return a + b[this.prop];
+}   
+
+var collection = [ 
+    { low: 40, high: 70 },
+    { low: 43, high: 83 },
+    { low: 39, high: 79 },
+    { low: 45, high: 74 }
+];  
+
+var reduceSum = _.partial(_.reduce, collection, sum, 0); 
+
+reduceSum({ prop: 'low' });
+reduceSum({ prop: 'high' });
+</code></pre>
+<pre id="mapReduceChain" class="hidden"><code>
+var collection = [ 
+    { name: 'Wade', balance: 100 },
+    { name: 'Donna', balance: 125 },
+    { name: 'Glenn', balance: 90 },
+    { name: 'Floyd', balance: 110 }
+], bonus = 25; 
+
+var mapped = _.map(collection, function(item) {
+    return _.extend({
+        bonus: item.balance + bonus
+    }, item);
+}); 
+
+_.reduce(mapped, function(result, item, index, coll) {
+    result += (item.bonus - item.balance) / item.bonus;
+    if (index === (coll.length - 1)) {
+        result = result / coll.length * 100;
+    }   
+    return result;
+}, 0).toFixed(2) + '%';
+</code></pre>
+				<h3>Result</h3>
+				<pre id="result"><code>
+					
+				</code></pre>
+			</div>
+		</div>
+	</body>
+</html>

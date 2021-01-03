@@ -1,0 +1,630 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Assembling Chains</title>
+		<link rel="stylesheet" href="../lib/highlight/styles/github.css">
+		<link rel="stylesheet" href="../lib/lodash-essentials.css">
+		<script src="../lib/jquery.min.js"></script>
+		<script src="../lib/highlight/highlight.pack.js"></script>
+		<script src="../lib/lodash.js"></script>
+		<script src="../lib/lodash-essentials.js"></script>
+		<script src="chapter5.js"></script>
+	</head>
+	<body>
+		<h1>Lodash Essentials</h1>
+		<h2>Chapter 5 &mdash; Assembling chains</h2>
+		<div id="container">
+			<ul id="navigation">
+				<li><strong>Chained calls</strong></li>
+				<li><a href="#jqueryChain">jQuery chains</a></li>
+				<li><strong>Wrapping values</strong></li>
+				<li><a href="#lodashArray">wrapping arrays</a></li>
+				<li><a href="#lodashObjectAndString">wrapping objects and strings</a></li>
+				<li><strong>Explicit and implicit chaining</strong></li>
+				<li><a href="#explicitChain">explicit chains</a></li>
+				<li><strong>Multiple filter() calls</strong></li>
+				<li><a href="#filterPropertyAndCallback">chaining property and callback filters</a></li>
+				<li><a href="#builtinCallbacksAndWhere">using built-in Lodash callbacks and where()</a></li>
+				<li><strong>Dropping and taking</strong></li>
+				<li><a href="#dropWhile">dropping conditionally</a></li>
+				<li><a href="#dropRightWhile">dropping from both directions</a></li>
+				<li><a href="#takeWhile">taking conditionals</a></li>
+				<li><a href="#takeRightWhile">getting the top values</a></li>
+				<li><strong>Rejecting items</strong></li>
+				<li><a href="#rejectProperties">rejecting object properties</a></li>
+				<li><a href="#rejectByResult">using function results</a></li>
+				<li><strong>Using initial() and rest()</strong></li>
+				<li><a href="#initial">initial collection portions</a></li>
+				<li><a href="#rest">ignoring the first item</a></li>
+				<li><strong>Collection contains item</strong></li>
+				<li><a href="#contains">testing using contains()</a></li>
+				<li><a href="#findFilterExists">using find() and filter() tests</a></li>
+				<li><a href="#every">every item passes the test</a></li>
+				<li><a href="#some">any item passes the test</a></li>
+				<li><strong>Using length and size()</strong></li>
+				<li><a href="#size">using the size() function</a></li>
+				<li><strong>Grouping using countBy()</strong></li>
+				<li><a href="#countBy">using the countBy() function</a></li>
+				<li><strong>Reducing collections</strong></li>
+				<li><a href="#reduceCount">using reduce() to count</a></li>
+				<li><strong>Groups, unions, and unique values</strong></li>
+				<li><a href="#groupBy">Using groupBy() in chains</a></li>
+				<li><a href="#union">Using union() in chains</a></li>
+				<li><a href="#uniq">Using uniq() in chains()</a></li>
+				<li><strong>Plucking values</strong></li>
+				<li><a href="#pluck">Getting only the values you need</a></li>
+				<li><strong>Creating arrays using without</strong></li>
+				<li><a href="#without">Creating arrays without values</a></li>
+				<li><strong>Finding the min() and max()</strong></li>
+				<li><a href="#min">Using min() in chains</a></li>
+				<li><a href="#max">Using max() in chains</a></li>
+				<li><strong>Finding the index</strong></li>
+				<li><a href="#index">Using index() in chains</a></li>
+				<li><strong>Using difference() and xor()</strong></li>
+				<li><a href="#difference">Finding the difference</a></li>
+				<li><a href="#xor">Finding the symmetrical difference</a></li>
+				<li><strong>Tapping into chains</strong></li>
+				<li><a href="#tap">Getting intermediate results</a></li>
+				<li><a href="#thru">Plugging values into chains</a></li>
+				<li><strong>Filtered keys and values</strong></li>
+				<li><a href="#filterKeys">Filtering object keys</a></li>
+				<li><a href="#filterValues">Filtering object values</a></li>
+				<li><strong>Omitting and picking properties</strong></li>
+				<li><a href="#pickOmit">Picking and omitting</a></li>
+				<li><strong>Returning wrappers</strong></li>
+				<li><a href="#returnWrapper">Returning wrappers</a></li>
+			</ul>
+			<div id="right">
+				<h3>Code</h3>
+<pre id="jqueryChain" class="hidden"><code>
+$('body')
+	.children()
+    .first()
+    .is('h1');
+</code></pre>
+<pre id="lodashArray" class="hidden"><code>
+_(['a', 'b', 'c'])
+	.at([1, 2]) 
+	.value();
+</code></pre>
+<pre id="lodashObjectAndString" class="hidden"><code>
+_({a: 'b', c: 'd'})
+	.contains('b');
+
+_('abcd')
+	.contains('b');
+</code></pre>
+<pre id="explicitChain" class="hidden"><code>
+_([3,2,1])
+	.sort()
+	.first();
+
+_.chain([3,2,1])
+	.sort()
+	.first()
+	.isNumber()
+	.value();
+</code></pre>
+<pre id="filterPropertyAndCallback" class="hidden"><code>
+var collection = [
+    { name: 'Ellen', age: 20, enabled: true },
+    { name: 'Heidi', age: 24, enabled: false },
+    { name: 'Roy', age: 21, enabled: true },
+    { name: 'Garry', age: 23, enabled: false }
+];
+
+_(collection)
+    .filter('enabled')
+    .filter(function(item) {
+        return item.age >= 21;
+    })
+   .value();
+</code></pre>
+<pre id="builtinCallbacksAndWhere" class="hidden"><code>
+var collection = [
+    { name: 'Janice', age: 38, gender: 'f' },
+    { name: 'Joey', age: 20, gender: 'm' },
+    { name: 'Lauren', gender: 'f' },
+    { name: 'Drew', gender: 'm' }
+];
+
+_(collection)
+    .where({ gender: 'f' })
+    .filter(_.flow(_.property('age'), _.isFinite))
+    .value();
+</code></pre>
+<pre id="dropWhile" class="hidden"><code>
+var collection = [
+    { first: 'Dewey', last: 'Mills' },
+    { first: 'Charlene', last: 'Larson' },
+    { first: 'Myra', last: 'Gray' },
+    { first: 'Tasha', last: 'Malone' }
+];
+
+_(collection)
+    .sortBy('first')
+    .dropWhile(function(item) {
+        return _.first(item.first) < 'F';
+    })
+    .value();
+</code></pre>
+<pre id="dropRightWhile" class="hidden"><code>
+var name = '  Donnie Woods   ',
+    emptyString = _.partial(_.isEqual, ' ');
+
+_(name)
+    .toArray()
+    .dropWhile(emptyString)
+    .dropRightWhile(emptyString)
+    .join('');
+</code></pre>
+<pre id="takeWhile" class="hidden"><code>
+var collection = [
+    { name: 'Jeannie', grade: 'B+' },
+    { name: 'Jeffrey', grade: 'C' },
+    { name: 'Carrie', grade: 'A-' },
+    { name: 'James', grade: 'A' }
+];
+
+_(collection)
+    .sortBy('grade')
+    .takeWhile(function(item) {
+        return _.first(item.grade).toUpperCase() === 'A';
+    })
+    .value();
+</code></pre>
+<pre id="takeRightWhile" class="hidden"><code>
+var collection = _.sample(_.range(1, 21), 10),
+    total = 5,
+    min = 10;
+
+_(collection)
+    .sortBy()
+    .takeRightWhile(function(item, index, array) {
+        return item >= min &&
+            array.length - index <= total;
+    })
+    .value();
+</code></pre>
+<pre id="rejectProperties" class="hidden"><code>
+var object = {
+    first: 'Conrad',
+    last: 'Casey',
+    age: 37,
+    enabled: true
+};
+
+_(object)
+    .reject(_.isBoolean)
+    .reject(_.isString)
+    .first()
+    .toFixed(2);
+</code></pre>
+<pre id="rejectByResult" class="hidden"><code>
+function User(name, disabled) {
+    this.name = name;
+    this.disabled = disabled;
+}
+
+User.prototype.enabled = function() {
+    return !this.disabled;
+};
+
+var collection = [
+        new User('Phil', true),
+        new User('Wilson', false),
+        new User('Kathey', true),
+        new User('Nina', false)
+    ],
+    enabled = _.flow(_.identity, _.partialRight(_.result, 'enabled'));
+
+_(collection)
+    .reject('disabled')
+    .value();
+
+_(collection)
+    .reject(_.negate(enabled))
+    .value();
+</code></pre>
+<pre id="initial" class="hidden"><code>
+var string = 'abc\n';
+
+_(string)
+    .slice()
+    .initial()
+    .join('');
+</code></pre>
+<pre id="rest" class="hidden"><code>
+var collection = [
+    { name: 'init', task: _.noop },
+    { name: 'sort', task: _.random },
+    { name: 'search', task: _.random }
+];
+
+_(collection)
+    .rest()
+    .invoke('task')
+    .value();
+</code></pre>
+<pre id="contains" class="hidden"><code>
+var string = 'abc123',
+    array = [ 'a', 'b', 'c', 1, 2, 3 ];
+
+_(string)
+	.filter(_.isString)
+    .contains('c');
+
+_(array)
+    .filter(_.isString)
+    .contains('c');
+</code></pre>
+<pre id="findFilterExists" class="hidden"><code>
+var string = 'Dana Porter',
+    array = [
+        { name: 'Luis', gender: 'm' },
+        { name: 'Rhonda', gender: 'f' },
+        { name: 'Kirk', gender: 'm' },
+        { name: 'Emily', gender: 'f' }
+    ];
+
+_(string)
+	.chain()
+    .filter(function(item) {
+    	return item.toUpperCase() === 'A';
+    })
+    .size()
+    .isEqual(2)
+    .value();
+
+!!(_(array)
+	.find(function(item) {
+    	return _.first(item.name).toUpperCase() === 'R' &&
+            item.gender === 'f';
+    }));
+</code></pre>
+<pre id="every" class="hidden"><code>
+var collection = [
+    1414728000000,
+    1383192000000,
+    1351656000000,
+    1320033600000
+];
+
+_(collection)
+    .map(function(item) {
+        return new Date(item);
+    })
+    .every(function(item) {
+        return item.getMonth() === 9 && item.getDate() === 31;
+     });
+</code></pre>
+<pre id="some" class="hidden"><code>
+var collection = [
+    { name: 'Danielle', age: 34, skill: 'Backbone' },
+    { name: 'Sammy', age: 19, skill: 'Ember' },
+    { name: 'Donna', age: 41, skill: 'Angular' },
+    { name: 'George', age: 17, skill: 'Marionette' }
+];
+
+_(collection)
+    .reject({ skill: 'Ember' })
+    .reject({ skill: 'Angular'})
+    .some(function(item) {
+        return item.age >= 25;
+    });
+</code></pre>
+<pre id="size" class="hidden"><code>
+var object = { first: 'Charlotte', last: 'Hall' },
+    array = _.range(10);
+
+_(object)
+	.omit('first')
+    .size();
+
+_(array)
+	.drop(5)
+    .size();
+</code></pre>
+<pre id="countBy" class="hidden"><code>
+var collection = [
+    { name: 'Pamela', gender: 'f' },
+    { name: 'Vanessa', gender: 'f' },
+    { name: 'Gina', gender: 'f' },
+    { name: 'Dennis', gender: 'm' }
+];
+
+_(collection)
+    .countBy('gender')
+    .pairs()
+    .sortBy(1)
+    .reverse()
+    .pluck(0)
+    .value();
+</code></pre>
+<pre id="reduceCount" class="hidden"><code>
+var collection = [
+    { name: 'Chad', skills: [ 'backbone', 'lodash' ] },
+    { name: 'Simon', skills: [ 'html', 'css', 'less' ] },
+    { name: 'Katie', skills: [ 'grunt', 'underscore' ] },
+    { name: 'Jennifer', skills: [ 'css', 'grunt', 'less' ] }
+];
+
+_(collection)
+    .pluck('skills')
+    .reduce(function(result, item) {
+        return _.size(item) > 2 &&
+            _.contains(item, 'grunt') &&
+            result + 1;
+    }, 0);
+</code></pre>
+<pre id="groupBy" class="hidden"><code>
+var collection = [
+    { name: 'Rudolph', age: 24 },
+    { name: 'Charles', age: 43 },
+    { name: 'Rodney', age: 37 },
+    { name: 'Marie', age: 28 }
+];
+
+_(collection)
+    .map(function(item) {
+        var experience = 'seasoned veteran';
+        if (item.age < 30) {
+            experience = 'noob';
+        } else if (item.age < 40) {
+            experience = 'geek cred';
+        }
+        return _.extend({
+            experience: experience
+        }, item);
+    })
+    .groupBy('experience')
+    .map(function(item, key) {
+        return key + ' (' + _.pluck(item, 'name').join(', ') + ')';
+    })
+    .value();
+</code></pre>
+<pre id="union" class="hidden"><code>
+var collection = _.sample(_.range(1, 101), 10);
+
+_(collection)
+    .union([ 25, 50, 75])
+    .sortBy()
+    .value();
+</code></pre>
+<pre id="uniq" class="hidden"><code>
+function name(item) {
+    return item.first + ' ' + item.last;
+}
+
+var collection = [
+    { first: 'Renee', last: 'Morris' },
+    { first: 'Casey', last: 'Wise' },
+    { first: 'Virginia', last: 'Grant' },
+    { first: 'Toni', last: 'Morris' }
+];
+
+_(collection)
+    .uniq('last')
+    .sortBy('last')
+    .value();
+
+_(collection)
+    .uniq(name)
+    .sortBy(name)
+    .value();
+
+_(collection)
+    .map(name)
+    .uniq()
+    .sortBy()
+    .value();
+</code></pre>
+<pre id="pluck" class="hidden"><code>
+var collection = [
+    { gender: 'f', dob: new Date(1984, 3, 8) },
+    { gender: 'm', dob: new Date(1983, 7, 16) },
+    { gender: 'f', dob: new Date(1987, 2, 4) },
+    { gender: 'm', dob: new Date(1988, 5, 2) }
+];
+
+_(collection)
+    .where({ gender: 'm' })
+    .pluck('dob')
+    .map(function(item) {
+        return item.toLocaleString();
+    })
+    .value();
+</code></pre>
+<pre id="without" class="hidden"><code>
+var collection = _.range(1, 11);
+
+return _(collection)
+    .without(5, _.first(collection), _.last(collection))
+    .reverse()
+    .value();
+</code></pre>
+<pre id="min" class="hidden"><code>
+var collection = [
+    { name: 'Daisy', wins: 10 },
+    { name: 'Norman', wins: 12 },
+    { name: 'Kim', wins: 8 },
+    { name: 'Colin', wins: 4 }
+];
+
+_(collection)
+    .reject(function(item) {
+        return item.wins < 5
+    })
+    .min('wins');
+</code></pre>
+<pre id="max" class="hidden"><code>
+var collection = [
+    { name: 'Kerry', balance: 500, credit: 344 },
+    { name: 'Franklin', balance: 0, credit: 554 },
+    { name: 'Lillie', balance: 1098, credit: 50 },
+    { name: 'Clyde', balance: 473, credit: -900 }
+];
+
+_(collection)
+    .filter('balance')
+    .filter('credit')
+    .max(function(item) {
+        return item.balance + item.credit;
+    });
+</code></pre>
+<pre id="index" class="hidden"><code>
+function rank(coll, name) {
+    return _(coll)
+        .sortBy('score')
+        .reverse()
+        .pluck('name')
+        .indexOf(name) + 1;
+}
+
+var collection = [
+    { name: 'Ruby', score: 43 },
+    { name: 'Robert', score: 59 },
+    { name: 'Lindsey', score: 38 },
+    { name: 'Marty', score: 55 }
+];
+
+rank(collection, 'Ruby');
+rank(collection, 'Marty');
+</code></pre>
+<pre id="difference" class="hidden"><code>
+var collection = _.range(1, 51),
+    odds = _.filter(_.range(1, 101), function(item) {
+        return item % 2;
+    });
+
+_(collection)
+    .difference(odds)
+    .takeRight(10)
+    .reverse()
+    .value();
+</code></pre>
+<pre id="xor" class="hidden"><code>
+var collection = _.range(1, 26),
+    evens = _.reject(_.range(1, 51), function(item) {
+        return item % 2;
+    });
+
+_(collection)
+    .xor(evens)
+    .reverse()
+    .value();
+</code></pre>
+<pre id="tap" class="hidden"><code>
+var collection = [
+        { name: 'Stuart', age: 41 },
+        { name: 'Leah', age: 26 },
+        { name: 'Priscilla', age: 37 },
+        { name: 'Perry', age: 31 }
+    ],
+    min,
+    max;
+
+_(collection)
+    .filter(function(item) {
+        return item.age >= 30;
+    })
+    .tap(function(coll) {
+        min = _.min(coll, 'age'),
+        max = _.max(coll, 'age')
+    })
+    .reject(function(item) {
+        return item.age === max.age;
+    })
+    .value();
+</code></pre>
+<pre id="thru" class="hidden"><code>
+var collection = _.range(1, _.random(11)),
+    result;
+
+result = _(collection)
+    .thru(function(coll) {
+         return _.size(coll) > 5 ? coll : [];
+     })
+     .reverse()
+     .value();
+
+_.isEmpty(result) ? 'No Results' : result.join(',');
+</code></pre>
+<pre id="filterKeys" class="hidden"><code>
+var object = {
+    firstName: 'Jerald',
+    lastName: 'Wolfe',
+    age: 49
+};
+
+_(object)
+    .keys()
+    .filter(function(item) {
+        return (/name$/i).test(item);
+    })
+    .thru(function(items) {
+        return _.at(object, items);
+    })
+    .value();
+</code></pre>
+<pre id="filterValues" class="hidden"><code>
+var object = {
+    first: 'Connie',
+    last: 'Vargas',
+    dob: new Date(1984, 08, 11)
+};
+
+_(object)
+    .values()
+    .filter(_.isDate)
+    .map(function(item) {
+        return item.toLocaleString();
+    })
+    .value();
+</code></pre>
+<pre id="pickOmit" class="hidden"><code>
+var collection = [
+    { first: 'Tracey', last: 'Doyle', age: 40 },
+    { first: 'Toby', last: 'Wright', age: 49 },
+    { first: 'Leonard', last: 'Hunt', age: 32 },
+    { first: 'Brooke', last: 'Briggs', age: 32 }
+];
+
+_(collection)
+    .indexBy('last')
+    .pick(function(value) {
+        return value.age >= 35;
+    })
+    .transform(function(result, item, key) {
+        result[key] = _.omit(item, 'last');
+    })
+    .value();
+</code></pre>
+<pre id="returnWrapper" class="hidden"><code>
+function best(coll, prop, count) {
+    return _(coll)
+        .sortBy(prop)
+        .takeRight(count);
+}
+
+var collection = [
+    { name: 'Mathew', score: 92 },
+    { name: 'Michele', score: 89 },
+    { name: 'Joe', score: 74 },
+    { name: 'Laurie', score: 83 }
+];
+
+var bestScore = best(collection, 'score', 2);
+
+bestScore.value();
+bestScore.reverse().value();
+bestScore.pluck('name').value();
+</code></pre>
+				<h3>Result</h3>
+				<pre id="result"><code>
+					
+				</code></pre>
+			</div>
+		</div>
+	</body>
+</html>
